@@ -1,3 +1,5 @@
+# Kaplay_Javascript
+
 # Folder structure
 
 - `src` - source code for your kaplay project
