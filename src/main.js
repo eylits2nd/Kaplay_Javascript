@@ -1,6 +1,6 @@
 import k from "./kaplayctx.js";
 import { makeSonic, makeRing, makeMotobug } from "./entities.js";
-import { initControls, consumeJump } from "./controls.js";
+import { initControls, setInputEnabled } from "./controls.js";
 
 
 // Load assets
@@ -36,6 +36,70 @@ k.loadSound("hurt", "sounds/Hurt.wav");
 
 //scenes
 k.scene("main", () => {
+  const mainManualObjects = [];
+  const addMainManualObject = (comp) => {
+    const obj = k.add(comp);
+    mainManualObjects.push(obj);
+    return obj;
+  };
+
+  const closeMainManual = () => {
+    mainManualObjects.forEach((obj) => k.destroy(obj));
+    mainManualObjects.length = 0;
+  };
+
+  const showMainManual = () => {
+    if (mainManualObjects.length > 0) return;
+
+    addMainManualObject([
+      k.rect(1160, 520),
+      k.pos(60, 90),
+      k.anchor("topleft"),
+      k.color(0, 0, 0),
+      k.opacity(0.85),
+    ]);
+
+    addMainManualObject([
+      k.text("Controls", { font: "mania", size: 56 }),
+      k.pos(k.center().x, 150),
+      k.anchor("center"),
+    ]);
+
+    addMainManualObject([
+      k.text("Jump: Space, W, Up Arrow, Left Click", { font: "mania", size: 28 }),
+      k.pos(k.center().x, 240),
+      k.anchor("center"),
+    ]);
+
+    addMainManualObject([
+      k.text("Air Duck: S, Down Arrow, Right Click", { font: "mania", size: 28 }),
+      k.pos(k.center().x, 290),
+      k.anchor("center"),
+    ]);
+
+    addMainManualObject([
+      k.text("During the game, progress freezes while the manual is open.", { font: "mania", size: 24 }),
+      k.pos(k.center().x, 340),
+      k.anchor("center"),
+    ]);
+
+    const closeBtn = addMainManualObject([
+      k.rect(180, 54),
+      k.pos(k.center().x, 440),
+      k.anchor("center"),
+      k.color(180, 60, 60),
+      k.area(),
+    ]);
+
+    addMainManualObject([
+      k.text("Close", { font: "mania", size: 28 }),
+      k.pos(k.center().x, 440),
+      k.anchor("center"),
+    ]);
+
+    closeBtn.onClick(closeMainManual);
+  };
+
   k.add([
     k.text("KAPLAY RUNNER", { font: "mania", size: 72 }),
     k.anchor("center"),
@@ -43,7 +107,7 @@ k.scene("main", () => {
   ]);
 
   k.add([
-    k.text("Press Space or Click to Start", { font: "mania", size: 36 }),
+    k.text("Press Space or use Start button to begin", { font: "mania", size: 36 }),
     k.anchor("center"),
     k.pos(k.center().x, k.center().y + 40),
   ]);
@@ -54,8 +118,37 @@ k.scene("main", () => {
     k.pos(k.center().x, k.center().y + 120),
   ]);
 
+  const startButton = k.add([
+    k.rect(260, 64),
+    k.pos(k.center().x - 140, k.center().y + 240),
+    k.anchor("center"),
+    k.color(40, 120, 40),
+    k.area(),
+  ]);
+
+  k.add([
+    k.text("Start Game", { font: "mania", size: 28 }),
+    k.anchor("center"),
+    k.pos(k.center().x - 140, k.center().y + 240),
+  ]);
+
+  const manualButton = k.add([
+    k.rect(260, 64),
+    k.pos(k.center().x + 140, k.center().y + 240),
+    k.anchor("center"),
+    k.color(50, 50, 70),
+    k.area(),
+  ]);
+
+  k.add([
+    k.text("Show Controls", { font: "mania", size: 28 }),
+    k.anchor("center"),
+    k.pos(k.center().x + 140, k.center().y + 240),
+  ]);
+
+  startButton.onClick(() => k.go("game"));
+  manualButton.onClick(showMainManual);
   k.onKeyPress("space", () => k.go("game"));
-  k.onMousePress(() => k.go("game"));
 });
 
 k.scene("game", () => {
@@ -75,6 +168,84 @@ k.scene("game", () => {
 
   initControls();
 
+  let gamePaused = false;
+  const gameManualObjects = [];
+  const addGameManualObject = (comp) => {
+    const obj = k.add(comp);
+    gameManualObjects.push(obj);
+    return obj;
+  };
+
+  const hideGameManual = () => {
+    gameManualObjects.forEach((obj) => k.destroy(obj));
+    gameManualObjects.length = 0;
+    if (sonic) {
+      sonic.gravityScale = 1;
+      sonic.isStatic = false;
+    }
+    gamePaused = false;
+    setInputEnabled(true);
+  };
+
+  const showGameManual = () => {
+    if (gameManualObjects.length > 0) return;
+    gamePaused = true;
+    setInputEnabled(false);
+    if (sonic) {
+      sonic.vel = k.vec2(0, 0);
+      sonic.gravityScale = 0;
+      sonic.isStatic = true;
+    }
+
+    addGameManualObject([
+      k.rect(1160, 520),
+      k.pos(60, 90),
+      k.anchor("topleft"),
+      k.color(0, 0, 0),
+      k.opacity(0.85),
+    ]);
+
+    addGameManualObject([
+      k.text("Controls", { font: "mania", size: 56 }),
+      k.pos(k.center().x, 150),
+      k.anchor("center"),
+    ]);
+
+    addGameManualObject([
+      k.text("Jump: Space, W, Up Arrow, Left Click", { font: "mania", size: 28 }),
+      k.pos(k.center().x, 240),
+      k.anchor("center"),
+    ]);
+
+    addGameManualObject([
+      k.text("Air Duck: S, Down Arrow, Right Click", { font: "mania", size: 28 }),
+      k.pos(k.center().x, 290),
+      k.anchor("center"),
+    ]);
+
+    addGameManualObject([
+      k.text("The game freezes while this screen is open.", { font: "mania", size: 24 }),
+      k.pos(k.center().x, 340),
+      k.anchor("center"),
+    ]);
+
+    const closeBtn = addGameManualObject([
+      k.rect(180, 54),
+      k.pos(k.center().x, 440),
+      k.anchor("center"),
+      k.color(180, 60, 60),
+      k.area(),
+    ]);
+
+    addGameManualObject([
+      k.text("Close", { font: "mania", size: 28 }),
+      k.pos(k.center().x, 440),
+      k.anchor("center"),
+    ]);
+
+    closeBtn.onClick(hideGameManual);
+  };
+
   const bgPieces = [
     k.add([k.sprite("chemical-bg"), k.pos(0, 0), k.scale(1.5), k.opacity(0.8)]),
     k.add([
@@ -88,7 +259,9 @@ k.scene("game", () => {
   k.setGravity(3100); // stronger gravity for more arcade feel
   let gameSpeed = 100; // initial game speed
   k.loop(1, () => {
-    gameSpeed = Math.min(gameSpeed + 10, 400); // increase speed over time, max 400
+    if (!gamePaused) {
+      gameSpeed = Math.min(gameSpeed + 10, 400); // increase speed over time, max 400
+    }
   });
 
   let score = 0;
@@ -109,6 +282,22 @@ k.scene("game", () => {
   sonic.setControls();
   sonic.setEvents();
 
+  const tutorialButton = k.add([
+    k.rect(170, 42),
+    k.pos(1080, 24),
+    k.anchor("topleft"),
+    k.color(40, 40, 80),
+    k.area(),
+  ]);
+
+  k.add([
+    k.text("Controls", { font: "mania", size: 22 }),
+    k.pos(1165, 45),
+    k.anchor("center"),
+  ]);
+
+  tutorialButton.onClick(showGameManual);
+
   const ringCollectUI = sonic.add([
     k.text("", { font: "mania", size: 18 }),
     k.color(255, 255, 0),
@@ -119,6 +308,7 @@ k.scene("game", () => {
   let distanceSinceLastSpawn = 0;
 
   k.onUpdate(() => {
+    if (gamePaused) return;
     distanceSinceLastSpawn += gameSpeed * k.dt();
   });
 
@@ -126,6 +316,7 @@ k.scene("game", () => {
     const motobug = makeMotobug(k.vec2(1280, 595));
 
     motobug.onUpdate(() => {
+      if (gamePaused) return;
       motobug.move(-gameSpeed * 1.2, 0);
     });
 
@@ -135,6 +326,11 @@ k.scene("game", () => {
   };
 
   const spawnLoop = () => {
+    if (gamePaused) {
+      k.wait(0.1, spawnLoop);
+      return;
+    }
+
     const baseSpacing = Math.max(300, 600 - gameSpeed);
 
     const randomOffset = k.rand(-150, 150);
@@ -162,6 +358,11 @@ k.scene("game", () => {
   spawnLoop();
 
   const spawnRing = () => {
+    if (gamePaused) {
+      k.wait(0.1, spawnRing);
+      return;
+    }
+
     const heights = [610, 560, 500, 440];
 
     const y = k.choose(heights); // ✅ pick height
@@ -169,6 +370,7 @@ k.scene("game", () => {
     const ring = makeRing(k.vec2(1280, y)); // ✅ create actual ring
 
     ring.onUpdate(() => {
+      if (gamePaused) return;
       ring.move(-gameSpeed, 0);
     });
 
@@ -230,6 +432,7 @@ k.scene("game", () => {
   });
 
   k.onUpdate(() => {
+    if (gamePaused) return;
     //console.log(sonic.isGrounded());
     // Background
 

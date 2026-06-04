@@ -4,35 +4,44 @@ const inputState = {
   jump: false,
   duck: false,
 };
+let inputEnabled = true;
 
 export function initControls() {
   // Keyboard: Jump
   k.onKeyPress("space", () => {
+    if (!inputEnabled) return;
     inputState.jump = true;
   });
   k.onKeyPress("w", () => {
+    if (!inputEnabled) return;
     inputState.jump = true;
   });
   k.onKeyPress("up", () => {
+    if (!inputEnabled) return;
     inputState.jump = true;
   });
   k.onKeyPress("arrowup", () => {
+    if (!inputEnabled) return;
     inputState.jump = true;
   });
 
   // Keyboard: Air duck
   k.onKeyPress("s", () => {
+    if (!inputEnabled) return;
     inputState.duck = true;
   });
   k.onKeyPress("down", () => {
+    if (!inputEnabled) return;
     inputState.duck = true;
   });
   k.onKeyPress("arrowdown", () => {
+    if (!inputEnabled) return;
     inputState.duck = true;
   });
 
   // Mouse: left click jump
   k.onMousePress(() => {
+    if (!inputEnabled) return;
     inputState.jump = true;
   });
 
@@ -41,6 +50,7 @@ export function initControls() {
     event.preventDefault();
   });
   window.addEventListener("mousedown", (event) => {
+    if (!inputEnabled) return;
     if (event.button === 2) {
       inputState.duck = true;
     }
@@ -61,4 +71,12 @@ export function consumeDuck() {
     return true;
   }
   return false;
+}
+
+export function setInputEnabled(enabled) {
+  inputEnabled = enabled;
+  if (!enabled) {
+    inputState.jump = false;
+    inputState.duck = false;
+  }
 }
